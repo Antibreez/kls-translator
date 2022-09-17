@@ -20,7 +20,197 @@ import ppd from "./ppd";
 
 // import { refcool, refcoolNote } from "./chillers";
 
-import { klsGlossary } from "./kls-glossary";
+//import { klsGlossary } from "./kls-glossary";
+
+import { getData, setData } from "./firebase";
+
+let data = {};
+
+getData
+  .then((res) => {
+    data = res;
+    $(".page-loader").hide();
+    addTranslateList("header");
+    addTranslateList("footer");
+    addTranslateList("main");
+
+    $('.translate-part input[name="search"]').each((idx, item) => {
+      const text = $(item).val();
+      const $words = $(item).parent().find(".translate-list .words");
+
+      if (text.trim().length > 1) {
+        $words.each((idx, words) => {
+          const $stroke = $(words).parent();
+          $stroke.addClass("hidden");
+
+          $(words)
+            .find("span")
+            .each((idx, word) => {
+              if ($(word).text().toLowerCase().includes(text.trim().toLowerCase())) {
+                $stroke.removeClass("hidden");
+              }
+            });
+        });
+      } else {
+        $words.parent().removeClass("hidden");
+      }
+    });
+  })
+  .catch((e) => {
+    $(".page-loader").hide();
+    $("body").append("<div>Ошибка при загрузке данных перевода с сервера</div>");
+    console.log("error", e);
+  });
+
+function onStrokeBtnClick(e) {
+  const $target = $(e.currentTarget);
+  const $stroke = $target.parents(".stroke").first();
+
+  if ($stroke.hasClass("new")) {
+    $stroke.remove();
+  } else {
+    $stroke.toggleClass("for-delete");
+  }
+
+  if ($(".stroke.new").length === 0 && $(".stroke.for-delete").length === 0) {
+    $(".translate-send").attr("disabled", true);
+  } else {
+    $(".translate-send").removeAttr("disabled");
+  }
+}
+
+function onAddBtnClick(e) {
+  const $target = $(e.currentTarget);
+  const $wrapper = $target.parent();
+  const $eng = $wrapper.find('input[name="eng"]');
+  const $rus = $wrapper.find('input[name="rus"]');
+
+  if ($eng.val().trim() === "") {
+    $eng.addClass("error");
+  }
+
+  if ($rus.val().trim() === "") {
+    $rus.addClass("error");
+  }
+
+  if ($eng.val().trim() !== "" && $rus.val().trim() !== "") {
+    const $newStroke = makeNewStroke($eng.val(), $rus.val());
+    $eng.val("");
+    $rus.val("");
+    $newStroke.addClass("new");
+    $target.parent().find(".translate-list").prepend($newStroke);
+    $(".translate-send").removeAttr("disabled");
+  }
+}
+
+function onInput(e) {
+  const $target = $(e.currentTarget);
+  $target.removeClass("error");
+}
+
+function makeDeleteBtn() {
+  const $btn = $("<button class='strokeBtn'></button>");
+  const $spanDelete = $("<span>Удалить</span>");
+  const $spanCancel = $("<span>Отменить</span>");
+  $btn.append($spanDelete);
+  $btn.append($spanCancel);
+  return $btn;
+}
+
+function makeNewStroke(eng, rus) {
+  const $strokeDiv = $("<div class='stroke'></div>");
+  const $wordsDiv = $("<div class='words'></div>");
+  $wordsDiv.append(`<span>${eng}</span>`);
+  $wordsDiv.append(`<span>${rus}</span>`);
+  $strokeDiv.append($wordsDiv);
+  $strokeDiv.append(makeDeleteBtn());
+  return $strokeDiv;
+}
+
+function addTranslateList(part) {
+  const $div = $("<div></div>");
+  data[part].forEach((item) => {
+    $div.prepend(makeNewStroke(item.eng, item.rus));
+  });
+  $(`#${part} .translate-list`).append($div.html());
+}
+
+function makeDataPart(name) {
+  let arr = [];
+  const $strokes = $(`.translate-part#${name} .stroke`);
+  $strokes.each((idx, item) => {
+    if ($(item).hasClass("for-delete")) return;
+    const $word = $(item).find(".words span");
+    arr.unshift({ "eng": $word.eq(0).text(), "rus": $word.eq(1).text() });
+  });
+  return arr;
+}
+
+function onSend() {
+  const newData = {};
+  newData["header"] = makeDataPart("header");
+  newData["footer"] = makeDataPart("footer");
+  newData["basic"] = data["basic"];
+  newData["main"] = makeDataPart("main");
+
+  $(".page-loader").show();
+
+  setData(newData)
+    .then((res) => {
+      location.reload();
+    })
+    .catch((e) => {
+      $(".page-loader").hide();
+    });
+}
+
+function onSearch(e) {
+  const $target = $(e.currentTarget);
+  const text = $target.val();
+  const $words = $target.parent().find(".translate-list .words");
+
+  if (text.trim().length > 1) {
+    $words.each((idx, words) => {
+      const $stroke = $(words).parent();
+      $stroke.addClass("hidden");
+
+      $(words)
+        .find("span")
+        .each((idx, word) => {
+          if ($(word).text().toLowerCase().includes(text.trim().toLowerCase())) {
+            $stroke.removeClass("hidden");
+          }
+        });
+    });
+  } else {
+    $words.parent().removeClass("hidden");
+  }
+}
+
+$(".translate-send").attr("disabled", true);
+
+$(".translate-list .words span").on("input", () => console.log("change"));
+
+$(document).on("click", ".translate-list .strokeBtn", onStrokeBtnClick);
+
+$(".add-translate-page .addStroke").on("click", onAddBtnClick);
+$(".translate-part input").on("input", onInput);
+$(".translate-send").on("click", onSend);
+$('.translate-part input[name="search"]').on("input", onSearch);
+
+$("#add-translate-password form").on("submit", function (e) {
+  e.preventDefault();
+
+  if ($(this).find("input").val() === "daichi2022") {
+    $("#add-translate-password").hide();
+  } else {
+    $(this).parent().addClass("error");
+  }
+});
+
+$("#add-translate-password input").on("input", function () {
+  $("#add-translate-password").removeClass("error");
+});
 
 // PDFJS.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.worker.js";
 // import * as PDFJS from "pdfjs-dist";
@@ -509,22 +699,29 @@ function readmultifiles(input, files) {
         const oldHeader = headerAsString;
         let newHeader = oldHeader;
 
-        Object.keys(klsGlossary.header).forEach((key) => {
-          newHeader = newHeader.replace(new RegExp(key, "g"), klsGlossary.header[key]);
+        data.header.forEach((item) => {
+          newHeader = newHeader.replace(new RegExp(item.eng.replace("(", "\\(").replace(")", "\\)"), "g"), item.rus);
         });
 
         const oldContent = contentAsString;
         let newContent = oldContent;
 
-        Object.keys(klsGlossary.content).forEach((key) => {
-          newContent = newContent.replace(new RegExp(key, "g"), klsGlossary.content[key]);
+        console.log(newContent);
+
+        data.main.forEach((item) => {
+          console.log(new RegExp(item.eng.replace("(", "\\(").replace(")", "\\)"), "g"));
+          newContent = newContent.replace(new RegExp(item.eng.replace("(", "\\(").replace(")", "\\)"), "g"), item.rus);
+        });
+
+        data.basic.forEach((item) => {
+          newContent = newContent.replace(new RegExp(item.eng.replace("(", "\\(").replace(")", "\\)"), "g"), item.rus);
         });
 
         const oldFooter = footerAsString;
         let newFooter = oldFooter;
 
-        Object.keys(klsGlossary.footer).forEach((key) => {
-          newFooter = newFooter.replace(new RegExp(key, "g"), klsGlossary.footer[key]);
+        data.footer.forEach((item) => {
+          newFooter = newFooter.replace(new RegExp(item.eng.replace("(", "\\(").replace(")", "\\)"), "g"), item.rus);
         });
 
         zipContent.file("word/header1.xml", newHeader);

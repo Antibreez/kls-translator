@@ -1,0 +1,19 @@
+.page-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #fff;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &::before {
+    content: "Загрузка...";
+    font-size: 40px;
+    line-height: 44px;
+    font-weight: bold;
+  }
+}

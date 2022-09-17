@@ -40,7 +40,7 @@ export const klsGlossary = {
     "Outdoor design temperature": "Наружная температура",
     "PANEL DATA": "Возможности корпуса",
     "Panel internal finish": "Исполнение внутренней стороны",
-    "Panel external finish": "Испонение наружной стороны",
+    "Panel external finish": "Исполнение наружной стороны",
     "CASING DATA": "Основание агрегата",
     "Base frame material": "Материал подставочной рамы",
     "Base frame height": "Высота подставочной рамы",
