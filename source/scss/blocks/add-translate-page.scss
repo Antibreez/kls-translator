@@ -168,8 +168,8 @@
 }
 
 input[name="search"] {
-  margin-top: 30px;
   width: 100%;
+  padding-right: 40px;
 }
 
 #add-translate-password {
@@ -201,6 +201,48 @@ input[name="search"] {
 
     p {
       display: block;
+    }
+  }
+}
+
+.translate-search {
+  position: relative;
+  margin-top: 30px;
+
+  button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    margin-right: 5px;
+    background-color: transparent;
+    border: none;
+    display: none;
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: calc(50% - 1px);
+      height: 20px;
+      width: 2px;
+      background-color: #000;
+      transform-origin: center;
+    }
+
+    &::before {
+      transform: rotate(-45deg);
+    }
+
+    &::after {
+      transform: rotate(45deg);
     }
   }
 }

@@ -36,7 +36,7 @@ getData
 
     $('.translate-part input[name="search"]').each((idx, item) => {
       const text = $(item).val();
-      const $words = $(item).parent().find(".translate-list .words");
+      const $words = $(item).parents(".translate-part").first().find(".translate-list .words");
 
       if (text.trim().length > 1) {
         $words.each((idx, words) => {
@@ -51,6 +51,8 @@ getData
               }
             });
         });
+
+        $(item).next().show();
       } else {
         $words.parent().removeClass("hidden");
       }
@@ -167,7 +169,7 @@ function onSend() {
 function onSearch(e) {
   const $target = $(e.currentTarget);
   const text = $target.val();
-  const $words = $target.parent().find(".translate-list .words");
+  const $words = $target.parents(".translate-part").first().find(".translate-list .words");
 
   if (text.trim().length > 1) {
     $words.each((idx, words) => {
@@ -182,7 +184,10 @@ function onSearch(e) {
           }
         });
     });
+
+    $target.next().show();
   } else {
+    $target.next().hide();
     $words.parent().removeClass("hidden");
   }
 }
@@ -210,6 +215,12 @@ $("#add-translate-password form").on("submit", function (e) {
 
 $("#add-translate-password input").on("input", function () {
   $("#add-translate-password").removeClass("error");
+});
+
+$(".translate-search-clear").on("click", function () {
+  $(this).prev().val("");
+  $(this).prev().trigger("input");
+  $(this).hide();
 });
 
 // PDFJS.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.worker.js";
@@ -706,10 +717,7 @@ function readmultifiles(input, files) {
         const oldContent = contentAsString;
         let newContent = oldContent;
 
-        console.log(newContent);
-
         data.main.forEach((item) => {
-          console.log(new RegExp(item.eng.replace("(", "\\(").replace(")", "\\)"), "g"));
           newContent = newContent.replace(new RegExp(item.eng.replace("(", "\\(").replace(")", "\\)"), "g"), item.rus);
         });
 
