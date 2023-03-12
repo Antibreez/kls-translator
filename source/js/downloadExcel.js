@@ -21,3 +21,9 @@ $("#button-midea").on("click", function () {
     name: "table",
   });
 });
+
+$("#ahu-button").on("click", function () {
+  $(".ahu-table table").table2excel({
+    name: "table",
+  });
+});

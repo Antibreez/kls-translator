@@ -26,6 +26,8 @@ import { getData, setData } from "./firebase";
 
 let data = {};
 
+const $ahuTable = $('.ahu-table table');
+
 getData
   .then((res) => {
     data = res;
@@ -716,6 +718,69 @@ function readmultifiles(input, files) {
 
         const oldContent = contentAsString;
         let newContent = oldContent;
+
+        let text = newContent;
+
+        // text = text.replace(new RegExp('<w:t>', 'gm'), '<span>');
+        // text = text.replace(new RegExp('</w:t>', 'gm'), '</span>');
+
+        let words = [];
+
+        const el = $.parseXML(text);
+        $(el).find('*').each((idx, item) => {
+          if ($(item).prop('tagName') === 'w:t') {
+            words.push($(item).text())
+          }
+        });
+
+        //console.log(words);
+        const tableContent = $('<table></table>')
+
+        words.forEach((word, idx) => {
+          if (words[idx - 1] === 'Customer reference') {
+            const ahu = {
+              name: word,
+              sections: []
+            }
+
+            const cutted = words.slice(idx);
+            const start = cutted.findIndex(w => w === 'Weight (kg)')
+            const end = cutted.findIndex(w => w === "SUPPLY COMPONENTS" || w === 'EXHAUST COMPONENTS')
+
+            const data = cutted.slice(start + 1, end);
+
+            while (data.length > 0) {
+              const section = data.splice(0, 6)
+              ahu.sections.push({[section[0]]: section.slice(1)})
+            }
+
+            ahu.sections.forEach((sec, idx) => {
+              const num = Object.keys(sec)[0];
+
+              const tr = $(`
+                <tr>
+                  <td>${idx === 0 ? ahu.name : ''}</td>
+                  <td>${num}</td>
+                  <td>${sec[num][0]}</td>
+                  <td>${sec[num][1]}</td>
+                  <td>${sec[num][2]}</td>
+                  <td>${sec[num][3]}</td>
+                  <td>${sec[num][4]}</td>
+                </tr>
+              `)
+
+
+              tableContent.append(tr)
+            })
+          }
+        })
+
+        $ahuTable.append(tableContent.html())
+
+        if (tableContent.html()) {
+          $('#ahu-button').show();
+          $ahuTable.show();
+        }
 
         data.main.forEach((item) => {
           newContent = newContent.replace(new RegExp(item.eng.replace("(", "\\(").replace(")", "\\)"), "g"), item.rus);
