@@ -198,7 +198,6 @@ export const klsGlossary = {
     "Pa": "Па",
     "Nm": "Нм",
     "kW": "кВт",
-    "V": "В",
     "Act": "действ.",
     "Std": "станд.",
     "actual": "действ.",
