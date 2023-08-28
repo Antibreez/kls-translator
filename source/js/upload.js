@@ -23,14 +23,17 @@ import ppd from "./ppd";
 //import { klsGlossary } from "./kls-glossary";
 
 import { getData, setData } from "./firebase";
+import { log } from "util";
 
 let data = {};
 
-const $ahuTable = $('.ahu-table table');
+const $ahuTable = $(".ahu-table table");
 
 getData
   .then((res) => {
     data = res;
+    data.basic = [...res.basic, { eng: "Side", rus: "В сторону" }];
+    console.log("data", data);
     $(".page-loader").hide();
     addTranslateList("header");
     addTranslateList("footer");
@@ -727,31 +730,38 @@ function readmultifiles(input, files) {
         let words = [];
 
         const el = $.parseXML(text);
-        $(el).find('*').each((idx, item) => {
-          if ($(item).prop('tagName') === 'w:t') {
-            words.push($(item).text())
-          }
-        });
+        // console.log($(el.activeElement.innerHTML).find("w\\:t"));
+        $(el.activeElement.innerHTML)
+          .find("w\\:t")
+          .each((idx, item) => {
+            words.push($(item).text());
+          });
+        // $(el.activeElement.innerHTML).find("w\\:t");
+        // .each((idx, item) => {
+        //   if ($(item).prop("tagName") === "w:t") {
+        //     words.push($(item).text());
+        //   }
+        // });
 
         //console.log(words);
-        const tableContent = $('<table></table>')
+        const tableContent = $("<table></table>");
 
         words.forEach((word, idx) => {
-          if (words[idx - 1] === 'Customer reference') {
+          if (words[idx - 1] === "Customer reference") {
             const ahu = {
               name: word,
-              sections: []
-            }
+              sections: [],
+            };
 
             const cutted = words.slice(idx);
-            const start = cutted.findIndex(w => w === 'Weight (kg)')
-            const end = cutted.findIndex(w => w === "SUPPLY COMPONENTS" || w === 'EXHAUST COMPONENTS')
+            const start = cutted.findIndex((w) => w === "Weight (kg)");
+            const end = cutted.findIndex((w) => w === "SUPPLY COMPONENTS" || w === "EXHAUST COMPONENTS");
 
             const data = cutted.slice(start + 1, end);
 
             while (data.length > 0) {
-              const section = data.splice(0, 6)
-              ahu.sections.push({[section[0]]: section.slice(1)})
+              const section = data.splice(0, 6);
+              ahu.sections.push({ [section[0]]: section.slice(1) });
             }
 
             ahu.sections.forEach((sec, idx) => {
@@ -759,7 +769,7 @@ function readmultifiles(input, files) {
 
               const tr = $(`
                 <tr>
-                  <td>${idx === 0 ? ahu.name : ''}</td>
+                  <td>${idx === 0 ? ahu.name : ""}</td>
                   <td>${num}</td>
                   <td>${sec[num][0]}</td>
                   <td>${sec[num][1]}</td>
@@ -767,20 +777,21 @@ function readmultifiles(input, files) {
                   <td>${sec[num][3]}</td>
                   <td>${sec[num][4]}</td>
                 </tr>
-              `)
+              `);
 
-
-              tableContent.append(tr)
-            })
+              tableContent.append(tr);
+            });
           }
-        })
+        });
 
-        $ahuTable.append(tableContent.html())
+        $ahuTable.append(tableContent.html());
 
         if (tableContent.html()) {
-          $('#ahu-button').show();
+          $("#ahu-button").show();
           $ahuTable.show();
         }
+
+        // console.log("newContent", newContent);
 
         data.main.forEach((item) => {
           newContent = newContent.replace(new RegExp(item.eng.replace("(", "\\(").replace(")", "\\)"), "g"), item.rus);
@@ -789,6 +800,8 @@ function readmultifiles(input, files) {
         data.basic.forEach((item) => {
           newContent = newContent.replace(new RegExp(item.eng.replace("(", "\\(").replace(")", "\\)"), "g"), item.rus);
         });
+
+        console.log("newContent", newContent);
 
         const oldFooter = footerAsString;
         let newFooter = oldFooter;
