@@ -32,8 +32,8 @@ const $ahuTable = $(".ahu-table table");
 getData
   .then((res) => {
     data = res;
-    data.basic = [...res.basic, { eng: "Side", rus: "В сторону" }];
-    console.log("data", data);
+    // data.basic = [...res.basic, { eng: "Side", rus: "В сторону" }];
+    // console.log("data", data);
     $(".page-loader").hide();
     addTranslateList("header");
     addTranslateList("footer");
@@ -731,7 +731,7 @@ function readmultifiles(input, files) {
 
         const el = $.parseXML(text);
         // console.log($(el.activeElement.innerHTML).find("w\\:t"));
-        $(el.activeElement.innerHTML)
+        $(el)
           .find("w\\:t")
           .each((idx, item) => {
             words.push($(item).text());
